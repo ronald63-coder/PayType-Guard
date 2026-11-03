@@ -1,5 +1,5 @@
 /**
- * Thin OpenAI wrapper (plain fetch, no SDK). Everything works without a key:
+ * Thin Gemini API wrapper (plain fetch, no SDK). Everything works without a key:
  * callers get null and fall back to deterministic templates.
  */
 export const AI_GUARDRAILS = [
@@ -11,30 +11,41 @@ export const AI_GUARDRAILS = [
   "Label anything uncertain as an estimate or assumption. Be concise and plain-spoken.",
 ].join(" ");
 
-const KEY = () => process.env.OPENAI_API_KEY;
-const MODEL = () => process.env.OPENAI_MODEL || "gpt-4o-mini";
+const KEY = () => process.env.GEMINI_API_KEY;
+const MODEL = () => process.env.GEMINI_MODEL || "gemini-2.5-flash";
+
+interface GeminiResponse {
+  candidates?: Array<{
+    content?: {
+      parts?: Array<{ text?: string }>;
+    };
+  }>;
+}
 
 async function chat(system: string, user: string, json: boolean): Promise<string | null> {
   const key = KEY();
   if (!key) return null;
   try {
-    const res = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${key}` },
-      body: JSON.stringify({
-        model: MODEL(),
-        temperature: 0.2,
-        ...(json ? { response_format: { type: "json_object" } } : {}),
-        messages: [
-          { role: "system", content: `${AI_GUARDRAILS}\n\n${system}` },
-          { role: "user", content: user },
-        ],
-      }),
-      signal: AbortSignal.timeout(20000),
-    });
+    const model = encodeURIComponent(MODEL());
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-goog-api-key": key },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: `${AI_GUARDRAILS}\n\n${system}` }] },
+          contents: [{ role: "user", parts: [{ text: user }] }],
+          generationConfig: {
+            temperature: 0.2,
+            ...(json ? { responseMimeType: "application/json" } : {}),
+          },
+        }),
+        signal: AbortSignal.timeout(20000),
+      },
+    );
     if (!res.ok) return null;
-    const data = await res.json();
-    return data?.choices?.[0]?.message?.content ?? null;
+    const data = (await res.json()) as GeminiResponse;
+    return data.candidates?.[0]?.content?.parts?.map((part) => part.text ?? "").join("") || null;
   } catch {
     return null;
   }

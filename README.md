@@ -25,7 +25,7 @@ npm test                        # core logic tests
 Set `PROFILE_SECRET` to a long random string. Recipients create a link on the *Share my readiness* tab; senders open `/pay/<token>`. Details are self-reported and signed so they can't be edited.
 
 ### 2. AI (optional)
-Set `OPENAI_API_KEY`. Without it everything still works with deterministic templates. The LLM only refines intent, narrates status guidance and writes appeal drafts from user evidence; it never computes fees.
+Create a Gemini API key in [Google AI Studio](https://aistudio.google.com/apikey) and set `GEMINI_API_KEY` in `.env.local`. The app uses `gemini-2.5-flash` by default; override it with `GEMINI_MODEL` if needed. Without a key, everything still works with deterministic templates. Gemini only refines intent, narrates status guidance and writes appeal drafts from user evidence; it never computes fees.
 
 ## Before you demo: verify the facts
 - `src/lib/fees.ts`: sample US rate (3.49% + 0.49 USD), flagged **unverified**. Check PayPal's fee page for your market, update, set `verified: true` and `asOf`.
@@ -40,8 +40,8 @@ docs/           SRS.md, schema.sql
 tests/          core.test.ts
 ```
 
-## Deploying to Vercel
-The in-memory event store won't share state across serverless instances. Replace `src/lib/store.ts` with Supabase (`docs/schema.sql`) before relying on webhooks in production. Set the same environment variables in Vercel.
+## Deploying to Render
+The in-memory event store won't share state across serverless instances. Replace `src/lib/store.ts` with Supabase (`docs/schema.sql`) before relying on webhooks in production. Set the same environment variables in Render.
 
 ## Safety rules the agent follows
 Never claims PayPal's internal risk data; never guarantees holds; never fabricates fees or evidence; never suggests changing payment type to avoid fees or protections; never executes a payment without your authorization.
