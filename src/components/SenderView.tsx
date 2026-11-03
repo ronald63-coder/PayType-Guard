@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { Assessment, RecipientProfile } from "@/lib/types";
 import Checker from "./Checker";
 
-export default function SenderView({ profile, token }: { profile: RecipientProfile; token: string }) {
+export default function SenderView({ profile, token, initial }: { profile: RecipientProfile; token: string; initial?: { amount?: string; currency?: string; description?: string } }) {
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [acknowledged, setAcknowledged] = useState(false);
   const [done, setDone] = useState<{ orderId: string; status: string } | null>(null);
@@ -23,6 +23,7 @@ export default function SenderView({ profile, token }: { profile: RecipientProfi
         onCaptured={(r) => setDone({ orderId: r.orderId, status: r.status })}
         profile={profile}
         profileToken={token}
+        initial={initial}
       />
       {done && (
         <p role="status" className="card mt-5 text-sm">

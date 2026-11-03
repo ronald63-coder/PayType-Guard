@@ -5,10 +5,12 @@ import Checker from "@/components/Checker";
 import Activity from "@/components/Activity";
 import Appeal from "@/components/Appeal";
 import ShareProfile from "@/components/ShareProfile";
+import AskReadiness from "@/components/AskReadiness";
 import Trace, { TraceStep } from "@/components/Trace";
 
 const TABS = [
   { id: "check", label: "Check & pay" },
+  { id: "ask", label: "Ask for readiness" },
   { id: "share", label: "Share my readiness" },
   { id: "activity", label: "After payment" },
   { id: "appeal", label: "Appeal a restriction" },
@@ -51,6 +53,9 @@ export default function Home() {
           <div hidden={tab !== "check"}>
             <Checker assessment={assessment} acknowledged={acknowledged} setAssessment={setAssessment} setAcknowledged={setAcknowledged}
               onCaptured={(r) => { setTxn(r); setReacted(false); setTab("activity"); }} />
+          </div>
+          <div hidden={tab !== "ask"}>
+            <AskReadiness />
           </div>
           <div hidden={tab !== "share"}>
             <ShareProfile />

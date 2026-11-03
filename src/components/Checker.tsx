@@ -25,12 +25,13 @@ interface Props {
   /** Set on the sender page: the recipient's self-declared readiness link. */
   profile?: RecipientProfile;
   profileToken?: string;
+  initial?: { amount?: string; currency?: string; description?: string };
 }
 
-export default function Checker({ assessment, acknowledged, setAssessment, setAcknowledged, onCaptured, profile, profileToken }: Props) {
-  const [amount, setAmount] = useState("500");
-  const [currency, setCurrency] = useState("USD");
-  const [description, setDescription] = useState("");
+export default function Checker({ assessment, acknowledged, setAssessment, setAcknowledged, onCaptured, profile, profileToken, initial }: Props) {
+  const [amount, setAmount] = useState(initial?.amount ?? "500");
+  const [currency, setCurrency] = useState(initial?.currency ?? "USD");
+  const [description, setDescription] = useState(initial?.description ?? "");
   const [type, setType] = useState<"GS" | "FF">("GS");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);

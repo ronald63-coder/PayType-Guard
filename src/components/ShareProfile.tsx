@@ -2,7 +2,13 @@
 import { useState } from "react";
 import { post } from "@/lib/client";
 
-export default function ShareProfile() {
+interface Context {
+  amount?: number;
+  currency?: string;
+  purpose?: string;
+}
+
+export default function ShareProfile({ askedBy, context }: { askedBy?: string; context?: Context } = {}) {
   const [name, setName] = useState("");
   const [accountType, setAccountType] = useState<"personal" | "business" | "unsure">("personal");
   const [setupComplete, setSetupComplete] = useState(true);
@@ -16,7 +22,12 @@ export default function ShareProfile() {
     setErr(null);
     try {
       const r = await post<{ token: string }>("/api/profile", { name, accountType, setupComplete, note });
-      setLink(`${window.location.origin}/pay/${r.token}`);
+      const query = new URLSearchParams();
+      if (context?.amount) query.set("a", String(context.amount));
+      if (context?.currency) query.set("c", context.currency);
+      if (context?.purpose) query.set("d", context.purpose);
+      const queryString = query.toString();
+      setLink(`${window.location.origin}/pay/${r.token}${queryString ? `?${queryString}` : ""}`);
     } catch (e: any) { setErr(e.message); setLink(null); }
   }
 
@@ -24,7 +35,7 @@ export default function ShareProfile() {
     <div className="space-y-5">
       <form onSubmit={create} className="card space-y-4">
         <div>
-          <h2 className="text-[15px] font-semibold">Tell senders what your account can take</h2>
+          <h2 className="text-[15px] font-semibold">{askedBy ? `Tell ${askedBy} what your account can take` : "Tell senders what your account can take"}</h2>
           <p className="mt-1 text-sm text-slate2">
             Create a link to send before someone pays you. They'll see what you declare here and get a warning if their payment doesn't fit. Only what you enter is shared; PayType Guard can't read your PayPal account.
           </p>
@@ -58,13 +69,14 @@ export default function ShareProfile() {
 
       {link && (
         <section className="card space-y-3" aria-live="polite">
-          <h2 className="text-[15px] font-semibold">Send this link before you get paid</h2>
-          <input readOnly aria-label="Readiness link" className="field font-mono text-xs" value={link} onFocus={(e) => e.currentTarget.select()} />
+          <h2 className="text-[15px] font-semibold">{askedBy ? `Send this link back to ${askedBy}` : "Send this link before you get paid"}</h2>
+          <a aria-label="Open readiness link" className="field block break-all font-mono text-xs text-signal underline" href={link}>
+            {link}
+          </a>
           <div className="flex flex-wrap gap-2">
             <button className="btn-quiet" onClick={async () => { await navigator.clipboard.writeText(link); setCopied(true); setTimeout(() => setCopied(false), 1500); }}>
               {copied ? "Copied" : "Copy link"}
             </button>
-            <a className="btn-primary" href={link} target="_blank" rel="noreferrer">Preview as sender</a>
           </div>
           <p className="text-xs text-slate2">Anyone with the link can read what you entered. It can't be edited without breaking its signature. Make a new link if your account changes.</p>
         </section>

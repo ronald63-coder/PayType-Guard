@@ -1,8 +1,12 @@
 import { verifyProfile } from "@/lib/profile";
 import SenderView from "@/components/SenderView";
 
-export default function PayPage({ params }: { params: { token: string } }) {
-  const profile = verifyProfile(decodeURIComponent(params.token));
+const CURRENCIES = ["USD", "EUR", "GBP"];
+
+export default async function PayPage({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ a?: string; c?: string; d?: string }> }) {
+  const [{ token: rawToken }, query] = await Promise.all([params, searchParams]);
+  const token = decodeURIComponent(rawToken);
+  const profile = verifyProfile(token);
   if (!profile) {
     return (
       <main className="mx-auto max-w-xl px-4 py-16">
@@ -11,5 +15,8 @@ export default function PayPage({ params }: { params: { token: string } }) {
       </main>
     );
   }
-  return <SenderView profile={profile} token={decodeURIComponent(params.token)} />;
+  const amount = /^\d{1,5}(\.\d{1,2})?$/.test(query.a ?? "") ? query.a : undefined;
+  const currency = CURRENCIES.includes(query.c ?? "") ? query.c : undefined;
+  const description = query.d ? query.d.slice(0, 200) : undefined;
+  return <SenderView profile={profile} token={token} initial={{ amount, currency, description }} />;
 }

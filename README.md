@@ -22,7 +22,13 @@ npm test                        # core logic tests
    Without a public URL, use the **Simulate** buttons on the After payment tab (`ALLOW_SIMULATION=true`). Simulated events are labelled as unverified.
 
 ### Readiness links
-Set `PROFILE_SECRET` to a long random string. Recipients create a link on the *Share my readiness* tab; senders open `/pay/<token>`. Details are self-reported and signed so they can't be edited.
+Generate a signing secret and add it as `PROFILE_SECRET` in `.env.local`:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"
+```
+
+Restart the app after changing `.env.local`. Senders can start on *Ask for readiness* to create a signed `/ask/<token>` link with an optional amount and purpose. The recipient answers the readiness questions and sends back a signed `/pay/<token>` link with those payment details prefilled. Click the generated links to open them, or copy and send them. Details are self-reported; signed profile data can't be edited without invalidating the link.
 
 ### 2. AI (optional)
 Create a Gemini API key in [Google AI Studio](https://aistudio.google.com/apikey) and set `GEMINI_API_KEY` in `.env.local`. The app uses `gemini-2.5-flash` by default; override it with `GEMINI_MODEL` if needed. Without a key, everything still works with deterministic templates. Gemini only refines intent, narrates status guidance and writes appeal drafts from user evidence; it never computes fees.
