@@ -1,6 +1,6 @@
 "use client";
-import { useState } from "react";
-import type { Assessment } from "@/lib/types";
+import { useEffect, useState } from "react";
+import type { Assessment, TxnStatus } from "@/lib/types";
 import Checker from "@/components/Checker";
 import Activity from "@/components/Activity";
 import Appeal from "@/components/Appeal";
@@ -16,13 +16,32 @@ const TABS = [
   { id: "appeal", label: "Appeal a restriction" },
 ] as const;
 type Tab = (typeof TABS)[number]["id"];
+const TXN_STATUSES: TxnStatus[] = ["APPROVED", "COMPLETED", "PENDING", "DENIED", "REFUNDED", "UNKNOWN"];
 
 export default function Home() {
   const [tab, setTab] = useState<Tab>("check");
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [acknowledged, setAcknowledged] = useState(false);
-  const [txn, setTxn] = useState<{ orderId: string; status: string; amount?: string; currency?: string } | null>(null);
+  const [txn, setTxn] = useState<{ orderId: string; status: TxnStatus; amount?: string; currency?: string } | null>(null);
   const [reacted, setReacted] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const orderId = params.get("orderId");
+    const rawStatus = params.get("status");
+    const status = TXN_STATUSES.find((validStatus) => validStatus === rawStatus);
+    if (!orderId || !/^[A-Za-z0-9-]{5,40}$/.test(orderId) || !status) return;
+
+    const amount = params.get("amount");
+    const currency = params.get("currency");
+    setTxn({
+      orderId,
+      status,
+      amount: amount && /^\d{1,5}(\.\d{1,2})?$/.test(amount) ? amount : undefined,
+      currency: currency && ["USD", "EUR", "GBP"].includes(currency) ? currency : undefined,
+    });
+    setTab("activity");
+  }, []);
 
   const steps: TraceStep[] = [
     { label: "Read the payment's purpose", detail: assessment ? `Interpreted as ${assessment.intent.category}.` : "Describe the payment to start.", done: !!assessment, active: !assessment },
@@ -61,7 +80,7 @@ export default function Home() {
             <ShareProfile />
           </div>
           <div hidden={tab !== "activity"}>
-            <Activity orderId={txn?.orderId ?? null} amount={txn?.amount} currency={txn?.currency} onGuidance={setReacted} />
+            <Activity orderId={txn?.orderId ?? null} status={txn?.status} amount={txn?.amount} currency={txn?.currency} onGuidance={setReacted} />
           </div>
           <div hidden={tab !== "appeal"}>
             <Appeal onDrafted={() => {}} />

@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { post } from "@/lib/client";
+import type { TxnStatus } from "@/lib/types";
 
 declare global { interface Window { paypal?: any } }
 
@@ -9,7 +10,7 @@ interface Props {
   currency: string;
   description: string;
   selectedType: "GS" | "FF";
-  onCaptured: (r: { orderId: string; status: string; amount?: string; currency?: string }) => void;
+  onCaptured: (r: { orderId: string; status: TxnStatus; amount?: string; currency?: string }) => void;
 }
 
 export default function PayPalButtons({ amount, currency, description, selectedType, onCaptured }: Props) {
@@ -44,7 +45,10 @@ export default function PayPalButtons({ amount, currency, description, selectedT
           },
           onApprove: async (data: { orderID: string }) => {
             try {
-              const r = await post("/api/paypal/capture-order", { orderId: data.orderID });
+              const r = await post<{ orderId: string; status: TxnStatus; amount?: string; currency?: string }>(
+                "/api/paypal/capture-order",
+                { orderId: data.orderID },
+              );
               latest.current.onCaptured(r);
             } catch (e: any) { setErr(e.message); }
           },

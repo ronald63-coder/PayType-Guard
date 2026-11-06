@@ -6,7 +6,13 @@ import Checker from "./Checker";
 export default function SenderView({ profile, token, initial }: { profile: RecipientProfile; token: string; initial?: { amount?: string; currency?: string; description?: string } }) {
   const [assessment, setAssessment] = useState<Assessment | null>(null);
   const [acknowledged, setAcknowledged] = useState(false);
-  const [done, setDone] = useState<{ orderId: string; status: string } | null>(null);
+  const [done, setDone] = useState<{ orderId: string; status: string; amount?: string; currency?: string } | null>(null);
+  const homeParams = done ? new URLSearchParams({
+    orderId: done.orderId,
+    status: done.status,
+    ...(done.amount ? { amount: done.amount } : {}),
+    ...(done.currency ? { currency: done.currency } : {}),
+  }) : null;
 
   return (
     <main className="mx-auto max-w-2xl px-4 py-8 sm:px-6">
@@ -20,7 +26,7 @@ export default function SenderView({ profile, token, initial }: { profile: Recip
         acknowledged={acknowledged}
         setAssessment={setAssessment}
         setAcknowledged={setAcknowledged}
-        onCaptured={(r) => setDone({ orderId: r.orderId, status: r.status })}
+        onCaptured={setDone}
         profile={profile}
         profileToken={token}
         initial={initial}
@@ -30,7 +36,7 @@ export default function SenderView({ profile, token, initial }: { profile: Recip
           <p>
             Sandbox payment {done.status.toLowerCase()}. Order <span className="font-mono">{done.orderId}</span>.
           </p>
-          <a href="/" className="btn-quiet">Back to home</a>
+          <a href={`/?${homeParams}`} className="btn-quiet">Back to home</a>
         </section>
       )}
     </main>

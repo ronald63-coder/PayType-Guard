@@ -20,8 +20,8 @@ const SIM = [
   ["PAYMENT.CAPTURE.REFUNDED", "Refunded"],
 ] as const;
 
-export default function Activity({ orderId, amount, currency, onGuidance }: {
-  orderId: string | null; amount?: string; currency?: string; onGuidance: (done: boolean) => void;
+export default function Activity({ orderId, status, amount, currency, onGuidance }: {
+  orderId: string | null; status?: TxnStatus; amount?: string; currency?: string; onGuidance: (done: boolean) => void;
 }) {
   const [events, setEvents] = useState<TxnEvent[]>([]);
   const [guidance, setGuidance] = useState<Guidance | null>(null);
@@ -76,7 +76,11 @@ export default function Activity({ orderId, amount, currency, onGuidance }: {
           <>
             <p className="mt-1 text-sm text-slate2">Order <span className="font-mono">{orderId}</span></p>
             <ul className="mt-3 divide-y divide-line">
-              {events.length === 0 && <li className="py-2 text-sm text-slate2">Waiting for events…</li>}
+              {events.length === 0 && (
+                <li className="py-2 text-sm text-slate2">
+                  {status ? <>Capture response: <strong className="text-ink">{STATUS_LABEL[status]}</strong></> : "Waiting for events…"}
+                </li>
+              )}
               {events.map((e) => (
                 <li key={e.id} className="flex flex-wrap items-center gap-x-3 gap-y-1 py-2 text-sm">
                   <span className="font-medium">{STATUS_LABEL[e.status]}</span>

@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { post } from "@/lib/client";
-import type { Assessment, Label, RecipientProfile } from "@/lib/types";
+import type { Assessment, Label, RecipientProfile, TxnStatus } from "@/lib/types";
 import PayPalButtons from "./PayPalButtons";
 
 const chip: Record<Label, string> = {
@@ -21,7 +21,7 @@ interface Props {
   acknowledged: boolean;
   setAssessment: (a: Assessment | null) => void;
   setAcknowledged: (v: boolean) => void;
-  onCaptured: (r: { orderId: string; status: string; amount?: string; currency?: string }) => void;
+  onCaptured: (r: { orderId: string; status: TxnStatus; amount?: string; currency?: string }) => void;
   /** Set on the sender page: the recipient's self-declared readiness link. */
   profile?: RecipientProfile;
   profileToken?: string;
