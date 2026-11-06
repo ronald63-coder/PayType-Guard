@@ -26,9 +26,12 @@ export default function SenderView({ profile, token, initial }: { profile: Recip
         initial={initial}
       />
       {done && (
-        <p role="status" className="card mt-5 text-sm">
-          Sandbox payment {done.status.toLowerCase()}. Order <span className="font-mono">{done.orderId}</span>.
-        </p>
+        <section role="status" className="card mt-5 space-y-3 text-sm">
+          <p>
+            Sandbox payment {done.status.toLowerCase()}. Order <span className="font-mono">{done.orderId}</span>.
+          </p>
+          <a href="/" className="btn-quiet">Back to home</a>
+        </section>
       )}
     </main>
   );
